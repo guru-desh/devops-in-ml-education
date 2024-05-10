@@ -1,5 +1,3 @@
-# Check HW1 repo for this file that has comments on what each step does!
-
 name: Build Autograder
 
 on: [push]
