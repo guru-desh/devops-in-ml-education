@@ -1,0 +1,57 @@
+name: Create Homework
+
+on: [push]
+
+jobs:
+  create-student-files:
+    runs-on: [self-hosted, linux]
+
+    steps:
+      - name: Pre-Cleanup
+        run:
+          | # Checks the max disk usage and removes docker cache if usage >= 90%
+          MAX_USAGE=$(df | awk '{print $5}' | sed 's/%//g' | sort -nr | head -n 1)
+          echo "Maximum disk usage is $MAX_USAGE%"
+          if [ "$MAX_USAGE" -gt 90 ]; then
+            echo "Disk usage is over 90%. Running Docker cleanup..."
+            docker image prune -f -a
+            docker builder prune -f -a
+          else
+            echo "Disk usage is below 90%. No cleanup required."
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t hw2-runner -f src/utils/build-conda/Dockerfile .
+
+      - name: Create Student Files Directory
+        run: |
+          mkdir -p src/student_files
+
+      - name: Copy data folder into student_files
+        run: |
+          cp -r src/teacher_files/data src/student_files/
+
+      - name: Remove Empty Cells from Jupyter Notebook
+        run: |
+          docker run --rm -v $(pwd):/app hw2-runner poetry run python3 src/utils/remove_solution_code/remove_blank_cells.py --input_path src/teacher_files/HW2_Solutions.ipynb --output_path src/teacher_files/HW2_Solutions.ipynb
+          docker run --rm -v $(pwd):/app hw2-runner poetry run poe clean
+
+      - name: Remove Solution Code from Python Files and move to Student Files Directory
+        run: |
+          docker run --rm -v $(pwd):/app hw2-runner poetry run python3 src/utils/remove_solution_code/remove_solution_code_from_code.py --input_path src/teacher_files/ --output_path src/student_files/
+          docker run --rm -v $(pwd):/app hw2-runner poetry run poe clean
+
+      - name: Remove Solution Code from Jupyter Notebook and move to Student Files Directory
+        run: |
+          docker run --rm -v $(pwd):/app hw2-runner poetry run python3 src/utils/remove_solution_code/remove_solution_code_from_notebook.py --input_path src/teacher_files/HW2_Solutions.ipynb --output_path src/student_files/HW2.ipynb
+          docker run --rm -v $(pwd):/app hw2-runner poetry run poe clean
+
+      - name: Upload Student Files
+        uses: actions/upload-artifact@v2
+        with:
+          name: student_files
+          path: src/student_files/

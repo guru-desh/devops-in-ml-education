@@ -1,0 +1,71 @@
+# Check HW1 repo for this file that has comments on what each step does!
+
+name: Build Autograder
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux]
+    strategy:
+      matrix:
+        zip_file: [
+            "CSXXXX_HW2",
+            "CSXXXX_HW2_Bonus_Undergrad",
+            "CSXXXX_HW2",
+            "HW2_Bonus_All",
+          ] # These must match the keys from the config.json file located in the autograder folder
+    env:
+      ZIP_FILE_LOWERCASE: "" # This is used to name the docker image
+    steps:
+      - name: Pre-Cleanup
+        run:
+          | # Checks the max disk usage and removes docker cache if usage >= 90%
+          MAX_USAGE=$(df | awk '{print $5}' | sed 's/%//g' | sort -nr | head -n 1)
+          echo "Maximum disk usage is $MAX_USAGE%"
+          if [ "$MAX_USAGE" -gt 90 ]; then
+            echo "Disk usage is over 90%. Running Docker cleanup..."
+            docker image prune -f -a
+            docker builder prune -f -a
+          else
+            echo "Disk usage is below 90%. No cleanup required."
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Convert ZIP file name to lowercase
+        run: echo "ZIP_FILE_LOWERCASE=$(echo '${{ matrix.zip_file }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Create Autograder Zip Files
+        # Creates CS4641_7641_HW2.zip
+        run: |
+          cd src
+          python3 utils/autograder/build_autograder.py ./
+          cd ..
+
+      - name: Create Docker Image
+        run: |
+          docker build --build-arg ZIP_FILE="src/autograder/${{ matrix.zip_file }}.zip" -t hw-autograder-${{ env.ZIP_FILE_LOWERCASE }} -f src/utils/autograder/Dockerfile .
+
+      - name: Test Autograder on Solution Files
+        run: |
+          mkdir autograder_results
+          docker run --rm -v $(pwd)/src/teacher_files:/autograder/submission -v $(pwd)/autograder_results:/autograder/results hw-autograder-${{ env.ZIP_FILE_LOWERCASE }}:latest /autograder/run_autograder && cat autograder_results/results.json
+          python3 src/utils/autograder/parse_json_output.py --input_path autograder_results/results.json
+
+      - name: Post Cleanup
+        run: |
+          docker image prune -f -a --filter "until=24h"
+          docker builder prune -f -a --filter "until=24h"
+
+      - name: Upload Autograder Zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: autograder
+          path: src/autograder/${{ matrix.zip_file }}.zip

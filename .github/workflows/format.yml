@@ -1,0 +1,33 @@
+name: Check Format
+
+on: [push]
+
+jobs:
+  check-format:
+    runs-on: [self-hosted, linux]
+
+    steps:
+      - name: Pre-Cleanup
+        run:
+          | # Checks the max disk usage and removes docker cache if usage >= 90%
+          MAX_USAGE=$(df | awk '{print $5}' | sed 's/%//g' | sort -nr | head -n 1)
+          echo "Maximum disk usage is $MAX_USAGE%"
+          if [ "$MAX_USAGE" -gt 90 ]; then
+            echo "Disk usage is over 90%. Running Docker cleanup..."
+            docker image prune -f -a
+            docker builder prune -f -a
+          else
+            echo "Disk usage is below 90%. No cleanup required."
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t hw2-runner -f src/utils/build-conda/Dockerfile .
+
+      - name: Check Formatting
+        run: |
+          docker run --rm -v $(pwd):/app hw2-runner poetry run poe check
+          docker run --rm -v $(pwd):/app hw2-runner poetry run poe clean
