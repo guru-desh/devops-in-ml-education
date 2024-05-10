@@ -38,13 +38,13 @@ Running the autograder locally requires **Docker** to be installed. If you do no
 
 Use the `poetry run poe test_autograder` command to test autograders locally. An additional argument is needed to specify which autograder you want to test. The `poetry run poe test_autograder` will tell you which autograders are possible to test. For HW2, specifically, there are 5 options:
 
-1. CSXXXX_HW2
-2. CSXXXX_HW2
-3. CSXXXX_HW2_Bonus_Undergrad
+1. CS4641_HW2
+2. CS7641_HW2
+3. CS4641_HW2_Bonus_Undergrad
 4. HW2_Bonus_All
 5. All (which tests all of the above autograders at once)
 
-For example, to test the CS4641_HW2 autograder, run `poetry run poe test_autograder CSXXXX_HW2`
+For example, to test the CS4641_HW2 autograder, run `poetry run poe test_autograder CS4641_HW2`
 
 ### Running Formatting Checks Locally
 
@@ -69,7 +69,7 @@ Here's the optional arguments for this command:
 
 1. *--rebuild* rebuilds the docker container for the autograder even if already built.
 
-An example command would be `poetry run poe debug_student_code --autograder CSXXXX_HW2 --student_code_path sample_student_submission`.
+An example command would be `poetry run poe debug_student_code --autograder CS4641_HW2 --student_code_path sample_student_submission`.
 
 ## Automated Builds and Test
 

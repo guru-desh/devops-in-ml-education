@@ -2,7 +2,7 @@
 name = "HW2"
 version = "0.1.0"
 description = ""
-authors = ["XXXXX XXXXX <XXXXX@XXXXX.edu>"]
+authors = ["Gururaj Deshpande <gurudesh@gatech.edu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
