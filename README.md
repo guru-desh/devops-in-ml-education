@@ -1,6 +1,6 @@
 # CI/CD pipeline
 
-This README is very similar to the README that we provide to TAs. This has been anonymized as well. Not all files are provided (notably `src/teacher_files` or `src/autograder`) since they contain solutions to our assignments.
+This README is the same README that we provide to TAs. Not all files are provided (notably `src/teacher_files` or `src/autograder`) since they contain solutions to our assignments.
 
 ## Securing the Main branch
 
@@ -88,14 +88,4 @@ One main change from Fall 2023's HW and this HW is the addition of a bunch of ne
 
 ### How to access build results?
 
-All these automations happen using a self-hosted Linux machine and GitHub Actions. On each commit that is pushed to GitHub, a little yellow dot will appear on the side of your commit, which indicates that the automated build is in progress. Clicking on it will reveal the result of the automated build. In this case, all the builds have passed:
-
-<!-- Image removed for anonymity -->
-<!-- ![Alt text](readme-diagrams/actions.png) -->
-
-Click on *Details* and then click on *Summary* in the left corner.
-
-<!-- Image removed for anonymity -->
-<!-- ![Alt text](readme-diagrams/artifacts.png) -->
-
-In the bottom, you will see all the created artifacts. **The most important artifact is student_files**, which contains all the student code, Jupyter Notebook code (both without any solutions), and the expected outputs pdf.
+All these automations happen using a self-hosted Linux machine and GitHub Actions. On each commit that is pushed to GitHub, a little yellow dot will appear on the side of your commit, which indicates that the automated build is in progress. Clicking on it will reveal the result of the automated build.
